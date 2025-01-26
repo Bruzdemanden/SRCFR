@@ -1,40 +1,77 @@
 let slider 
+let resetButton
+let animating = false
+let animatingCheckbox
 let nodes = []
-let allLines = []
+let path = []
+let t = 0
 let pointSelected = null
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   slider = createSlider(0, 1, 0, 0.01)
   slider.position(10,10)
+
+  resetButton = createButton('Reset')
+  resetButton.position(165,10)
+  resetButton.mousePressed(resetCurves)
+
+  animatingCheckbox = createCheckbox('Animate', false)
+  animatingCheckbox.position(235, 10)
 }
 
 function draw() {
   background(100);
+  console.log(nodes.length)
+
+  animating = animatingCheckbox.checked()
+
+  if(animating){
+    t += 0.01
+
+    if(t > 1){
+      t = 0
+      path = []
+    }
+    slider.value(t)
+  } else {
+    t = slider.value()
+  }
+
+  noFill()
+  stroke(255)
+  strokeWeight(1)
+
+  beginShape()
+
+  for(let i = 0; i < path.length; i++){
+    let point = path[i]
+    vertex(point.x, point.y)
+  }
+ 
+  endShape()
 
   if(nodes.length > 1){
-   
-    let t = slider.value()
-  
-    let interpoint = calcRecPoints(nodes, t, allLines)
-
+    let interpoint = calcRecPoints(nodes, t)
+    
     for(let i = 0; i < interpoint.length - 1; i++){
-
     let p1 = interpoint[i]
     let p2 = interpoint[i+1]
-  
-    fill(255, 0, 0)
-    circle(p1.x, p1.y, 10)
 
     }
     
     let lastPoint = interpoint[interpoint.length - 1]
     fill(0, 255, 0)
     circle(lastPoint.x, lastPoint.y, 10)
+
+    path.push(lastPoint)
   }
 
   for(let i = 0; i < nodes.length; i++){
 
+   
+    stroke(0)
+    strokeWeight(1)
     let node = nodes[i]
     fill(255)
     circle(node.x, node.y, 20)
@@ -48,7 +85,7 @@ function draw() {
   }
 }
 
-function calcRecPoints(points, t, allLines){
+function calcRecPoints(points, t){
   let newPoints = []
 
   for(i = 0; i < points.length - 1; i++){
@@ -68,17 +105,14 @@ function calcRecPoints(points, t, allLines){
   }
 
   if(newPoints.length > 1){
-    return calcRecPoints(newPoints, t, allLines)
+    return calcRecPoints(newPoints, t)
   } else if (newPoints.length === 1 ){
     return newPoints
-  } else {
-    return []
-  }
+  } 
 }
 
 function mousePressed(){
-
-  if (mouseY < 40 && mouseX < 150) {
+  if (mouseY < 45 && mouseX < 350) {
     return true
   }
 
@@ -91,10 +125,15 @@ function mousePressed(){
       return
     } 
   }
-
   nodes.push({x: mouseX, y: mouseY})
 }
 
 function mouseReleased(){
   pointSelected = null
+}
+
+function resetCurves(){
+  nodes = []
+  slider.value(0)
+  path = []
 }
