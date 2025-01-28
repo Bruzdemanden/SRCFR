@@ -22,10 +22,17 @@ function setup() {
 
 function draw() {
   background(100);
-  console.log(nodes.length)
+  //console.log(nodes.length)
 
   animating = animatingCheckbox.checked()
 
+  fill(255)
+  noStroke()
+  textSize(16)
+  text('t = ' + t, 18, 50)
+  
+
+  //Auto update of t
   if(animating){
     t += 0.01
 
@@ -52,6 +59,7 @@ function draw() {
   endShape()
 
   if(nodes.length > 1){
+    
     let interpoint = calcRecPoints(nodes, t)
     
     for(let i = 0; i < interpoint.length - 1; i++){
@@ -67,12 +75,13 @@ function draw() {
     path.push(lastPoint)
   }
 
+  // Draws the white nodes
   for(let i = 0; i < nodes.length; i++){
 
-   
+    let node = nodes[i]
     stroke(0)
     strokeWeight(1)
-    let node = nodes[i]
+    
     fill(255)
     circle(node.x, node.y, 20)
 
@@ -85,25 +94,31 @@ function draw() {
   }
 }
 
+
 function calcRecPoints(points, t){
   let newPoints = []
 
+  //Calculate middle points
   for(i = 0; i < points.length - 1; i++){
     let p1 = points[i]
     let p2 = points[i+1]
     
+    //Lerp the dif
     let difX = lerp(p1.x, p2.x, t)
     let difY = lerp(p1.y, p2.y, t)
     newPoints.push({ x: difX, y: difY})
 
+    //Draw the circles
     fill(200)
     circle(p1.x, p1.y, 7.5)
     circle(p2.x, p2.y, 7.5)
 
+    //Draw the lines
     stroke(0)
     line(p1.x, p1.y, p2.x, p2.y)
   }
 
+  //Calculation until one point remains, then returns
   if(newPoints.length > 1){
     return calcRecPoints(newPoints, t)
   } else if (newPoints.length === 1 ){
@@ -111,6 +126,7 @@ function calcRecPoints(points, t){
   } 
 }
 
+//UI check
 function mousePressed(){
   if (mouseY < 45 && mouseX < 350) {
     return true
@@ -128,10 +144,12 @@ function mousePressed(){
   nodes.push({x: mouseX, y: mouseY})
 }
 
+//Should make sense
 function mouseReleased(){
   pointSelected = null
 }
 
+//Same here ig
 function resetCurves(){
   nodes = []
   slider.value(0)
