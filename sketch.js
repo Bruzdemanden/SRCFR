@@ -22,20 +22,17 @@ function setup() {
 
 function draw() {
   background(100);
-  //console.log(nodes.length)
 
   animating = animatingCheckbox.checked()
 
   fill(255)
   noStroke()
   textSize(16)
-  text('t = ' + t, 18, 50)
-  
+  text('t = ' + t.toFixed(2), 18, 50)
 
   //Auto update of t
   if(animating){
     t += 0.01
-
     if(t > 1){
       t = 0
       path = []
@@ -46,27 +43,18 @@ function draw() {
   }
 
   noFill()
-  stroke(255)
+  stroke(t*100, t*255, 0)
   strokeWeight(1)
 
   beginShape()
-
   for(let i = 0; i < path.length; i++){
     let point = path[i]
     vertex(point.x, point.y)
   }
- 
   endShape()
 
   if(nodes.length > 1){
-    
     let interpoint = calcRecPoints(nodes, t)
-    
-    for(let i = 0; i < interpoint.length - 1; i++){
-    let p1 = interpoint[i]
-    let p2 = interpoint[i+1]
-
-    }
     
     let lastPoint = interpoint[interpoint.length - 1]
     fill(0, 255, 0)
@@ -94,7 +82,6 @@ function draw() {
   }
 }
 
-
 function calcRecPoints(points, t){
   let newPoints = []
 
@@ -108,14 +95,14 @@ function calcRecPoints(points, t){
     let difY = lerp(p1.y, p2.y, t)
     newPoints.push({ x: difX, y: difY})
 
+    //Draw the lines
+    stroke(0) 
+    line(p1.x, p1.y, p2.x, p2.y)
+
     //Draw the circles
     fill(200)
     circle(p1.x, p1.y, 7.5)
     circle(p2.x, p2.y, 7.5)
-
-    //Draw the lines
-    stroke(0)
-    line(p1.x, p1.y, p2.x, p2.y)
   }
 
   //Calculation until one point remains, then returns
@@ -133,7 +120,6 @@ function mousePressed(){
   }
 
   for(let i = 0; i< nodes.length; i++){
-
     let d = dist(mouseX, mouseY, nodes[i].x, nodes[i].y)
 
     if(d < 20){
