@@ -30,25 +30,31 @@ function draw() {
   textSize(16)
   text('t = ' + t.toFixed(2), 18, 50)
 
-  
-  for(let i2=0; nodes.length > i2; i2++){
+  //Control of t and slider
+  let maxT = max(1, nodes.length)
+  slider.attribute('max', maxT)
+
+  for(let i2 = 0; nodes.length > i2; i2++){
     //Auto update of t
     if(animating){
-      t += i2 == 0 ? 0.01 : 0
-      if(t > 1){
+     // t += i2 == 0 ? 0.01 : 0
+     t+=0.01/nodes.length
+      if(t >= maxT){
         t = 0
-        path = [[]]
-        for (let o = 0; o < nodes.length; o++) {
-          path.push([])
-        }
+          for(let i = 0; i < path.length; i++){
+            path[i] = []
+          }
       }
       slider.value(t)
     } else {
-      t = slider.value()
+      t = slider.value() 
     }
   
+    let chosenCurve = floor(t) //The current curve
+    let localT = t - chosenCurve //The local t value of the curve
+
     noFill()
-    stroke(t*100, t*255, 0)
+    stroke(100, 255, 0)
     strokeWeight(1)
   
     beginShape()
@@ -59,18 +65,22 @@ function draw() {
     endShape()
 
     if(nodes[i2].length > 1){
-      let tangentVector = ({x: 0, y: 0})
-  
-  
-      tangentVector.x = (calcRecPoints(nodes[i2], t+0.001)[0].x - calcRecPoints(nodes[i2], t-0.001)[0].x)/(0.001-(-0.001))
-      tangentVector.y = (calcRecPoints(nodes[i2], t+0.001)[0].y - calcRecPoints(nodes[i2], t-0.001)[0].y)/(0.001-(-0.001))
-  
-  
-      
-      let interpoint = calcRecPoints(nodes[i2], t)
+      for(let i = 0; i < nodes[i2].length - 1; i++){
+        stroke(0)
+        line(nodes[i2][i].x, nodes[i2][i].y, nodes[i2][i + 1].x, nodes[i2][i + 1].y,)
+      }
+    }
+
+    if(i2 == chosenCurve && nodes[i2].length > 1){
+     // let tangentVector = ({x: 0, y: 0})
+     // tangentVector.x = (calcRecPoints(nodes[i2], t+0.001)[0].x - calcRecPoints(nodes[i2], t-0.001)[0].x)/(0.001-(-0.001))
+     // tangentVector.y = (calcRecPoints(nodes[i2], t+0.001)[0].y - calcRecPoints(nodes[i2], t-0.001)[0].y)/(0.001-(-0.001))
+
      // fill(255, 0, 0)
      // line(interpoint[0].x, interpoint[0].y, interpoint[0].x+tangentVector.x, interpoint[0].y+tangentVector.y)
-      
+    
+      let interpoint = calcRecPoints(nodes[i2], localT) 
+
       let lastPoint = interpoint[interpoint.length - 1]
       fill(0, 255, 0)
       circle(lastPoint.x, lastPoint.y, 10)
@@ -78,7 +88,7 @@ function draw() {
       path[i2].push(lastPoint)
     }
   
-    // Draws the white nodes[i2]
+    // Draws the white nodes
     for(let i = 0; i < nodes[i2].length; i++){
   
       let node = nodes[i2][i]
@@ -93,15 +103,13 @@ function draw() {
     nodes[pointSelected.liste][pointSelected.index].x = mouseX
     nodes[pointSelected.liste][pointSelected.index].y = mouseY
   }
-
-  
 }
 
 function calcRecPoints(points, t){
   let newPoints = []
 
   //Calculate middle points
-  for(i = 0; i < points.length - 1; i++){
+  for(let i = 0; i < points.length - 1; i++){
     let p1 = points[i]
     let p2 = points[i+1]
     
@@ -157,6 +165,7 @@ function resetCurves(){
   nodes = [[]]
   path = [[]]
   slider.value(0)
+  t = 0
 }
 
 function keyPressed() {
