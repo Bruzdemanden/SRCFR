@@ -1,16 +1,20 @@
-let slider 
+let tSlider 
+let widthSlider
 let resetButton
 let animating = false
 let animatingCheckbox
 let nodes = [[]]
 let path = [[]]
+let leftPath = []
+let rightPath = []
 let t = 0
+let trackWidth = 20
 let pointSelected = null
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  slider = createSlider(0, 1, 0, 0.01)
-  slider.position(10,10)
+  tSlider = createSlider(0, 1, 0, 0.01)
+  tSlider.position(10,10)
 
   resetButton = createButton('Reset')
   resetButton.position(165,10)
@@ -18,26 +22,30 @@ function setup() {
 
   animatingCheckbox = createCheckbox('Animate', false)
   animatingCheckbox.position(235, 10)
+
+  widthSlider = createSlider(0, 50, 0, 0.5)
+  widthSlider.position(325, 10)
 }
 
 function draw() {
-  background(100);
+  background(200);
 
   animating = animatingCheckbox.checked()
+  trackWidth = widthSlider.value()
 
-  fill(255)
+  fill(0)
   noStroke()
   textSize(16)
   text('t = ' + t.toFixed(2), 18, 50)
+  text('Trackwidth = ' + trackWidth, 333, 50)
 
   //Control of t and slider
   let maxT = max(1, nodes.length)
-  slider.attribute('max', maxT)
+  tSlider.attribute('max', maxT)
 
   for(let i2 = 0; nodes.length > i2; i2++){
     //Auto update of t
     if(animating){
-     // t += i2 == 0 ? 0.01 : 0
      t+=0.01/nodes.length
       if(t >= maxT){
         t = 0
@@ -45,9 +53,9 @@ function draw() {
             path[i] = []
           }
       }
-      slider.value(t)
+      tSlider.value(t)
     } else {
-      t = slider.value() 
+      t = tSlider.value() 
     }
   
     let chosenCurve = floor(t) //The current curve
@@ -98,11 +106,71 @@ function draw() {
       circle(node.x, node.y, 20)
     }
   }
+  
   if(pointSelected != null){
 
+    if (pointSelected.liste != 0 && pointSelected.index == 1) {
+      nodes[pointSelected.liste-1][nodes[pointSelected.liste-1].length-2].x = nodes[pointSelected.liste][0].x - nodes[pointSelected.liste][pointSelected.index].x + nodes[pointSelected.liste][0].x
+      
+      nodes[pointSelected.liste-1][nodes[pointSelected.liste-1].length-2].y = nodes[pointSelected.liste][0].y - nodes[pointSelected.liste][pointSelected.index].y + nodes[pointSelected.liste][0].y
+
+    }
     nodes[pointSelected.liste][pointSelected.index].x = mouseX
     nodes[pointSelected.liste][pointSelected.index].y = mouseY
   }
+
+  //Rydder de seperate paths
+  leftPath = []
+  rightPath = []
+
+  //Beregnelse af bredde
+  //Loop igennem hele path listen 
+  for(let i2 = 0; i2 < path.length; i2++){
+    //Tjek hvorvidt path til i2 har mere end 1 punkt
+    if (path[i2].length > 1) { 
+      //Loop gennem hvert punkt i path til i2, hvor vi starter fra punkt 1, da vi sammenligner med det forrige
+      for (let i = 1; i < path[i2].length; i++) {
+          //Henter det forrige punkt og nuværende punkt i path
+          let p1 = path[i2][i - 1]
+          let p2 = path[i2][i]
+
+          //Beregner forskellen ix- og y-koordinaterne mellem det forrige og nuværende punkt
+          let dx = p2.x - p1.x
+          let dy = p2.y - p1.y
+
+          //Beregner vinklen mellem punkterne i forhold til x-aksen
+          let angle = atan2(dy, dx)
+
+          //Beregner koordinaterne for vesntre side af banen ved brug af den udregnede vinkel lagt sammen med 90 grader
+          let xLeft = p2.x + cos(angle + HALF_PI) * trackWidth
+          let yLeft = p2.y + sin(angle + HALF_PI) * trackWidth
+          //Tilføjer punkterne til listen leftPath
+          leftPath.push({x: xLeft, y: yLeft})
+    
+          //Beregner koordinaterne for højre side af banen ved brug af den udregnede vinkel med 90 grader trukket fra
+          let xRight = p2.x + cos(angle - HALF_PI) * trackWidth
+          let yRight = p2.y + sin(angle - HALF_PI) * trackWidth
+          //Tilføjer punkterne til listen rightPath
+          rightPath.push({x: xRight, y: yRight})
+     }
+   }
+ }
+
+ //Bredde tegnes
+ 
+  fill(100)
+  noStroke()
+  beginShape()
+  for(let i = 0; i < leftPath.length; i++){
+    vertex(leftPath[i].x, leftPath[i].y)
+  }
+
+  for(let i = rightPath.length-1; i >= 0; i--){
+    vertex(rightPath[i].x, rightPath[i].y)
+  }
+  endShape(CLOSE)
+
+
 }
 
 function calcRecPoints(points, t){
@@ -138,7 +206,7 @@ function calcRecPoints(points, t){
 
 //UI check
 function mousePressed(){
-  if (mouseY < 45 && mouseX < 350) {
+  if (mouseY < 45 && mouseX < 465) {
     return true
   }
 
@@ -164,8 +232,10 @@ function mouseReleased(){
 function resetCurves(){
   nodes = [[]]
   path = [[]]
-  slider.value(0)
+  tSlider.value(0)
   t = 0
+  leftPath = []
+  rightPath = []
 }
 
 function keyPressed() {
